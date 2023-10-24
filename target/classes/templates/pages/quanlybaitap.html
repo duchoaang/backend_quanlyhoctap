@@ -1,0 +1,281 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+<head th:replace="../layouts/header :: html_head"/>
+<style>
+    .form-container {
+        width: 300px;
+        margin: 0 auto;
+        text-align: left;
+    }
+
+    .form-label {
+        text-align: left;
+    }
+
+    .form-input {
+        text-align: left;
+        width: 100%;
+        margin-bottom: 10px;
+    }
+
+    .form-button {
+        text-align: right;
+    }
+
+    .form-button2 {
+        text-align: center;
+        color: red;
+    }
+    h1{
+        align-item:center;
+        color:red;
+    }
+    .form-button{
+        margin-top:10px;
+    }
+    .container_header{
+        display:flex;
+        justify-content: space-between;
+    }
+</style>
+<body>
+<div th:replace="../layouts/header :: html_nav"/>
+
+<section class="container">
+    <h1>Quản lý bài tập</h1>
+    <div class="container_header">
+        <div class="search-container">
+            <input type="text" id="searchInput" placeholder="Tìm theo Tên bài tập..." th:name="keyword">
+            <button type="submit">Tìm kiếm</button>
+        </div>
+        <select id="monHocFilter" onchange="filterMonHoc()">
+            <option value="all">Tất cả môn học</option>
+            <option value="Cơ sở dữ liệu">Cơ sở dữ liệu</option>
+            <!--        <option value="Lập trình Java">Lập trình Java</option>-->
+            <option value="Sinh học 1">Sinh học 1</option>
+            <option value="Lập trình C++">Lập trình C++</option>
+            <option value="Tiếng Anh cơ bản">Tiếng Anh cơ bản</option>
+            <option value="Lịch sử thế giới">Lịch sử thế giới</option>
+            <option value="Nghệ thuật và thiết kế">Nghệ thuật và thiết kế</option>
+            <option value="Tâm lý học cơ bản">Tâm lý học cơ bản</option>
+            <option value="Xã hội học">Xã hội học</option>
+            <option value="Kinh tế cơ bản">Kinh tế cơ bản</option>
+            <!-- Thêm các tùy chọn khác ở đây -->
+        </select>
+    </div>
+
+    <!--    <label for="monHocFilter">Chọn môn học:</label>-->
+
+
+    <table class="table">
+        <thead class="thead-dark">
+        <tr>
+            <th scope="col">id</th>
+            <th scope="col">Tên bài tập</th>
+            <th scope="col">Nội dung</th>
+            <th scope="col">Đáp án</th>
+            <th scope="col">Môn học</th>
+            <th scope="col">Công cụ</th>
+
+        </tr>
+        </thead>
+        <tbody th:each="baitap : ${baiTaps}">
+        <tr>
+            <td th:text="${baitap.id}"></td>
+            <td th:text="${baitap.tenBaiTap}"></td>
+            <td th:text="${baitap.noiDung}"></td>
+            <td th:text="${baitap.dapAn}"></td>
+            <td th:text="${baitap.monHoc.tenMonHoc}"></td>
+            <td>
+                <button class="btn btn-warning"th:attr="onclick='deleteBaiTap(\'' + ${baitap.id} + '\')'">Xóa bài tập</button>
+            </td>
+            <td>
+                <button class="btn btn-primary" onclick="editBaiTap(${baitap.id})">Chỉnh sửa</button>
+            </td>
+
+        </tr>
+        </tbody>
+    </table>
+
+    <h2 class="form-button2"> Thêm bài tập</h2>
+    <form id="addBaiTapForm">
+        <label for="tenBaiTap" class="form-label">Tên bài tập:</label>
+        <input type="text" id="tenBaiTap" name="tenBaiTap" class="form-input" required>
+
+        <label for="noiDung" class="form-label">Nội dung:</label>
+        <textarea id="noiDung" name="noiDung" class="form-input" required></textarea>
+
+        <label for="dapAn" class="form-label">Đáp án:</label>
+        <textarea id="dapAn" name="dapAn" class="form-input" required></textarea>
+
+        <label for="monHoc" class="form-label">Mã môn học:</label>
+        <select class="form-control" id="monHoc" name="monHoc">
+            <!--                    <option th:each="diemMonHoc : ${diemMonHocList}" th:value="${diemMonHoc.id}" th:text="${diemMonHoc.monHoc.tenMonHoc}"></option>-->
+            <option value="">-- Chọn Một Môn học --</option>
+            <option value="1">Cơ sở dữ liệu</option>
+            <option value="2">Lập trình Java </option>
+            <option value="13">Hóa học cơ bản</option>
+            <option value="14">Sinh học 1</option>
+            <option value="15">Lập trình C++</option>
+            <option value="16">Tiếng Anh cơ bản</option>
+            <option value="17">Triết học</option>
+            <option value="18">Lịch sử thế giới</option>
+            <option value="19">Nghệ thuật và thiết kế</option>
+            <option value="20">Tâm lý học cơ bản</option>
+            <option value="21">Xã hội học</option>
+            <option value="22">Kinh tế cơ bản</option>
+        </select>
+<!--        <input type="text" id="monHocId" name="monHocId" class="form-input" required>-->
+
+        <button type="submit" class="form-button btn btn-success">Thêm bài tập</button>
+    </form>
+
+    <h1>Edit Bài Tập</h1>
+    <form id="editBaiTapForm">
+        <label for="baitapId" class="form-label">Bài tập ID:</label>
+        <input type="text" id="baitapId" name="id" class="form-input" required>
+
+        <label for="tenBaiTap" class="form-label">Tên bài tập:</label>
+        <input type="text" id="tenBaiTap2" name="tenBaiTap" class="form-input" required>
+
+        <label for="noiDung" class="form-label">Nội dung:</label>
+        <textarea id="noiDung2" name="noiDung" class="form-input" required></textarea>
+
+        <label for="dapAn" class="form-label">Đáp án:</label>
+        <textarea id="dapAn2" name="dapAn" class="form-input" required></textarea>
+
+        <button type="submit" class="form-button btn btn-success">Update Bài Tập</button>
+    </form>
+
+</section>
+<footer th:replace="../layouts/footer :: html_footer"/>
+<script>
+    function deleteBaiTap(baiTapId) {
+        if (confirm("Bạn có chắc chắn muốn xóa bài tập này không?")) {
+            fetch(`/api/v1/baiTap/${baiTapId}`, {
+                method: 'DELETE',
+                headers: {
+            'Content-Type': 'application/json',
+            'Authorization': 'Bearer eyJhbGciOiJIUzI1NiJ9.eyJ1c2VySWQiOjMsInVzZXJuYW1lIjoidXNlcjMiLCJzdWIiOiJ1c2VyMyIsImV4cCI6MTY5OTQ5MDk0OH0.XmXda0N-Xrj_jxTChtZ_KO4FLya614m4R45p7HGlo9g'
+        }
+            })
+            .then(response => {
+                console.log(response)
+                if (response.ok) {
+                    location.reload();
+                } else {
+                    alert('Có lỗi xảy ra khi xóa bài tập.');
+                }
+            })
+            .catch(error => {
+                console.error('Lỗi:', error);
+                alert('Có lỗi xảy ra khi kết nối đến máy chủ.');
+            });
+        }
+    }
+
+   document.getElementById("addBaiTapForm").addEventListener("submit", function (event) {
+    event.preventDefault();
+
+    const form = document.getElementById("addBaiTapForm");
+    const tenBaiTap = form.elements.tenBaiTap.value;
+    const noiDung = form.elements.noiDung.value;
+    const dapAn = form.elements.dapAn.value;
+    const monHocId = document.getElementById("monHoc").value;
+
+
+    const data = {
+        tenBaiTap: tenBaiTap,
+        noiDung: noiDung,
+        dapAn: dapAn,
+        monHocId: monHocId
+    };
+    console.log(data)
+    fetch("/api/v1/baiTap", {
+        method: 'POST',
+        headers: {
+            'Content-Type': 'application/json',
+            'Authtorization': 'Bearer eyJhbGciOiJIUzI1NiJ9.eyJ1c2VySWQiOjMsInVzZXJuYW1lIjoidXNlcjMiLCJzdWIiOiJ1c2VyMyIsImV4cCI6MTY5OTU5ODE0NX0.ScgGrySBAbLGqo14qvh1_wHnIqDUb3KTFrDU7cfYno0'
+        },
+        body: JSON.stringify(data)
+    })
+        .then(response => {
+
+            if (response.ok) {
+                alert('Bài tập đã được thêm thành công.');
+                form.reset();
+                location.reload(); // Tải lại trang sau khi thành công
+            } else {
+                console.log(response)
+            }
+        })
+        .catch(error => {
+            console.error('Lỗi:', error);
+            alert('Có lỗi xảy ra khi kết nối đến máy chủ.');
+        });
+});
+
+
+document.querySelector("button[type=submit]").addEventListener("click", function (event) {
+        event.preventDefault();
+        var keyword = document.querySelector("input[name=keyword]").value;
+        window.location.href = "/admin/quanlybaitap/searchBaiTap?keyword=" + keyword;
+    });
+
+function filterMonHoc() {
+    var monHocFilter = document.getElementById("monHocFilter").value;
+    var rows = document.querySelectorAll("tbody tr");
+    console.log(monHocFilter);
+    for (var i = 0; i < rows.length; i++) {
+        var row = rows[i];
+        var monHocCell = row.querySelector("td:nth-child(5)"); // Cột môn học (số thứ tự 4).
+        var monHoc = monHocCell.textContent;
+
+        if (monHocFilter === "all" || monHoc === monHocFilter) {
+            row.style.display = "table-row";
+        } else {
+            row.style.display = "none";
+        }
+    }
+}
+
+ document.getElementById("editBaiTapForm").addEventListener("submit", function (event) {
+        event.preventDefault();
+
+        const form = document.getElementById("editBaiTapForm");
+        const baitapId = form.elements.id.value;
+        const tenBaiTap = form.elements.tenBaiTap2.value;
+        const noiDung = form.elements.noiDung2.value;
+        const dapAn = form.elements.dapAn2.value;
+
+        const data = {
+            tenBaiTap: tenBaiTap,
+            noiDung: noiDung,
+            dapAn: dapAn
+        };
+
+        fetch(`http://localhost:8081/api/v1/baiTap/${baitapId}`, {
+            method: 'PUT',
+            headers: {
+                'Content-Type': 'application/json',
+                'Authorization': 'YourAuthorizationTokenHere'
+            },
+            body: JSON.stringify(data)
+        })
+        .then(response => {
+            if (response.ok) {
+                alert('Update bài tập thành công');
+                form.reset();
+            } else {
+                alert('Failed to update the exercise.');
+            }
+        })
+        .catch(error => {
+            console.error('Error:', error);
+            alert('Failed to connect to the server.');
+        });
+    });
+
+</script>
+</body>
+</html>

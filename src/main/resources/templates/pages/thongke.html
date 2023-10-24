@@ -1,0 +1,411 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+<head th:replace="../layouts/header :: html_head"/>
+<style>
+    .chart1{
+        display:flex;
+    }
+    .chartContainer{
+        display:none
+    }
+</style>
+<body>
+
+<div th:replace="../layouts/header :: html_nav"/>
+
+<section class="container">
+    <h1>Thống kê</h1>
+
+
+    <select id="chartSelector">
+        <option value="chart1">Thống kê điểm theo điểm số</option>
+        <option value="chart2">Thống kê số lượng sinh viên</option>
+        <option value="chart3">Thống kê số lượng bài tập theo môn học</option>
+        <option value="chart5">Thống kê số lượng sinh viên giỏi</option>
+    </select>
+
+    <div class="chart1">
+        <div id="chartContainer" style="height: 300px; width: 50%;">
+        </div>
+        <div id="chartContainer2" style="height: 300px; width: 50%;">
+        </div>
+
+    </div>
+
+    <div class="chart1">
+        <div id="chartContainer3" style="height: 300px; width: 100%;">
+        </div>
+
+    </div>
+    <div class="chart1">
+        <div id="chartContainer5" style="height: 300px; width: 100%;">
+        </div>
+
+    </div>
+    <h1>Thống kê dữ liệu sinh viên</h1>
+    <label for="userId">Chọn Sinh viên:</label>
+    <select class="form-control" id="userId" name="userId" onchange="getUserName()">
+        <option value="">-- Chọn id sinh viên --</option>
+        <option value="1">1</option>
+        <option value="2">2</option>
+        <option value="2">3</option>
+    </select>
+    <label for="userName">Tên sinh viên:</label>
+    <input type="text" class="form-control" id="userName" name="userName" disabled>
+    <button id="fetchDataButton" class="btn btn-primary">Xem dữ liệu thống kê</button>
+    <div class="chart_sinhvien">
+        <div id="chartContainer4" style="height: 300px; width: 100%;">
+        </div>
+        <h1>Nhận xét</h1>
+    </div>
+
+
+</section>
+<footer th:replace="../layouts/footer :: html_footer"/>
+
+<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+<script>
+    const bearerToken = 'eyJhbGciOiJIUzI1NiJ9.eyJ1c2VySWQiOjMsInVzZXJuYW1lIjoidXNlcjMiLCJzdWIiOiJ1c2VyMyIsImV4cCI6MTY5OTU5ODE0NX0.ScgGrySBAbLGqo14qvh1_wHnIqDUb3KTFrDU7cfYno0';
+   const apiUrl = 'http://localhost:8081/api/v1/diemMonHoc';
+   const headers = new Headers({
+     'Authorization': `Bearer ${bearerToken}`,
+});
+   const request = new Request(apiUrl, {
+ method: 'GET',
+ headers: headers
+});
+const apiUrl2 = 'http://localhost:8081/api/v1/users';
+    const request2 = new Request(apiUrl2, {
+ method: 'GET',
+ headers: headers
+});
+    window.onload = function () {
+  fetch(request)
+    .then(response => {
+      if (response.ok) {
+        return response.json(); // Lấy dữ liệu điểm môn học
+      } else {
+        throw new Error('Lỗi khi gửi yêu cầu POST');
+      }
+    })
+    .then(data => {
+      // Sau khi lấy dữ liệu điểm môn học, tính toán số lượng điểm của từng điểm
+      const diemCounts = {}; // Đối tượng lưu trữ số lượng điểm
+
+      data.forEach(item => {
+        const diem = item.diem; // Giả sử dữ liệu điểm nằm trong thuộc tính 'diem'
+        diemCounts[diem] = (diemCounts[diem] || 0) + 1; // Tăng số lượng điểm
+         const sortedLabels = Object.keys(diemCounts)
+        .sort((a, b) => parseFloat(a) - parseFloat(b));
+      });
+
+      const dataPoints = [];
+
+      for (const diem in diemCounts) {
+        if (diemCounts.hasOwnProperty(diem)) {
+          dataPoints.push({ y: diemCounts[diem], indexLabel: `Điểm ${diem}` });
+        }
+      }
+
+      // Tạo biểu đồ Pie Chart
+      var chart = new CanvasJS.Chart("chartContainer", {
+        title: {
+          text: "Số lượng điểm theo điểm số"
+        },
+        data: [
+          {
+            type: "pie",
+            showInLegend: true,
+            legendText: "{indexLabel}",
+            dataPoints: dataPoints
+          }
+        ]
+      });
+      chart.render();
+    })
+    .catch(error => {
+      console.error('Lỗi:', error);
+      alert('Có lỗi xảy ra khi kết nối đến máy chủ.');
+    });
+
+    fetch(`/api/v1/users`, {
+                method: 'GET',
+                headers: {
+            'Authorization': 'Bearer eyJhbGciOiJIUzI1NiJ9.eyJ1c2VySWQiOjMsInVzZXJuYW1lIjoidXNlcjMiLCJzdWIiOiJ1c2VyMyIsImV4cCI6MTY5OTQ5MDk0OH0.XmXda0N-Xrj_jxTChtZ_KO4FLya614m4R45p7HGlo9g'
+        }
+     })
+    .then(response => {
+      if (response.ok) {
+        return response.json(); // Lấy danh sách người dùng
+      } else {
+        throw new Error('Lỗi khi lấy danh sách người dùng');
+      }
+    })
+    .then(users => {
+      // Tính toán số lượng người dùng có active = true và false
+      const activeUsers = users.filter(user => user.active === true);
+      const inactiveUsers = users.filter(user => user.active === false);
+
+      // Tạo biểu đồ bằng dữ liệu đã tính toán
+      var chart = new CanvasJS.Chart("chartContainer2", {
+        title: {
+          text: "Số lượng người dùng theo trạng thái active"
+        },
+        data: [
+          {
+            dataPoints: [
+              { x: 1, y: activeUsers.length, label: "Active" },
+              { x: 2, y: inactiveUsers.length, label: "Inactive" }
+            ]
+          }
+        ]
+      });
+      chart.render();
+    })
+    .catch(error => {
+      console.error('Lỗi:', error);
+      alert('Có lỗi xảy ra khi kết nối đến máy chủ.');
+    });
+
+      fetch(`/api/v1/baiTap`, {
+                method: 'GET',
+                headers: {
+            'Authorization': 'Bearer eyJhbGciOiJIUzI1NiJ9.eyJ1c2VySWQiOjMsInVzZXJuYW1lIjoidXNlcjMiLCJzdWIiOiJ1c2VyMyIsImV4cCI6MTY5OTQ5MDk0OH0.XmXda0N-Xrj_jxTChtZ_KO4FLya614m4R45p7HGlo9g'
+        }
+     })
+    .then(response => {
+    if (response.ok) {
+      return response.json(); // Chuyển response thành đối tượng JSON
+    } else {
+      throw new Error('Lỗi khi gửi yêu cầu GET');
+    }
+  })
+  .then(data => {
+    const baiTapCounts = {}; // Đối tượng lưu trữ số lượng bài tập
+
+    data.forEach(item => {
+      const monHoc = item.monHoc.tenMonHoc; // Giả sử tên môn học nằm trong thuộc tính 'tenMonHoc'
+      baiTapCounts[monHoc] = (baiTapCounts[monHoc] || 0) + 1; // Tăng số lượng bài tập
+    });
+
+    // Tạo mảng dữ liệu cho biểu đồ
+    const dataPoints = [];
+    for (const monHoc in baiTapCounts) {
+      if (baiTapCounts.hasOwnProperty(monHoc)) {
+        dataPoints.push({ label: monHoc, y: baiTapCounts[monHoc] });
+      }
+    }
+
+    // Tạo và render biểu đồ
+    var chart = new CanvasJS.Chart("chartContainer3", {
+      title: {
+        text: "Số lượng bài tập theo môn học"
+      },
+      data: [
+        {
+          type: "column",
+          dataPoints: dataPoints
+        }
+      ]
+    });
+
+    chart.render();
+     })
+    .catch(error => {
+      console.error('Lỗi:', error);
+      alert('Có lỗi xảy ra khi kết nối đến máy chủ.');
+    });
+
+
+    fetch(apiUrl, {
+        method: 'GET',
+        headers: headers
+    })
+        .then(response => {
+            if (response.ok) {
+                return response.json();
+            } else {
+                throw new Error('Lỗi khi gửi yêu cầu GET');
+            }
+        })
+        .then(data => {
+            // Filter students with scores greater than 8
+            const filteredStudents = data.filter(student => student.diem > 8);
+
+            // Count the number of students in each score range
+            const scoreCounts = {};
+
+            filteredStudents.forEach(student => {
+                const score = Math.floor(student.diem); // Round down to the nearest integer
+                scoreCounts[score] = (scoreCounts[score] || 0) + 1;
+            });
+
+            // Prepare data for the chart
+            const dataPoints = [];
+
+            for (const score in scoreCounts) {
+                if (scoreCounts.hasOwnProperty(score)) {
+                    dataPoints.push({ label: score, y: scoreCounts[score] });
+                }
+            }
+
+            // Create and render the bar chart
+            var chart = new CanvasJS.Chart("chartContainer5", {
+                title: {
+                    text: "Số lượng sinh viên có điểm > 8 theo điểm số"
+                },
+                data: [
+                    {
+                        type: "column",
+                        dataPoints: dataPoints
+                    }
+                ]
+            });
+
+            chart.render();
+        })
+        .catch(error => {
+            console.error('Lỗi:', error);
+            alert('Có lỗi xảy ra khi kết nối đến máy chủ.');
+        });
+}
+
+const chartSelector = document.getElementById("chartSelector");
+const chart1Container = document.getElementById("chartContainer");
+const chart2Container = document.getElementById("chartContainer2");
+const chart3Container = document.getElementById("chartContainer3");
+const chart5Container = document.getElementById("chartContainer5");
+
+chartSelector.addEventListener("change", function() {
+    const selectedChart = chartSelector.value;
+  chart1Container.style.display = "none";
+        chart2Container.style.display ="none";
+        chart3Container.style.display ="none";
+    // Hiển thị phần tử chứa biểu đồ được chọn
+    if (selectedChart === "chart1") {
+        chart1Container.style.display = "block";
+        chart2Container.style.display ="none";
+        chart3Container.style.display ="none";
+        chart5Container.style.display ="none";
+
+    } else if (selectedChart === "chart2") {
+        chart1Container.style.display = "none";
+        chart2Container.style.display ="block";
+        chart3Container.style.display ="none";
+                chart5Container.style.display ="none";
+    }
+    else if (selectedChart === "chart3") {
+               chart1Container.style.display = "none";
+        chart2Container.style.display ="none";
+                chart5Container.style.display ="none";
+        chart3Container.style.display ="block";
+    }
+    else if (selectedChart === "chart5") {
+               chart1Container.style.display = "none";
+        chart2Container.style.display ="none";
+        chart3Container.style.display ="none";
+          chart5Container.style.display ="block";
+    }
+
+});
+
+  const fetchDataButton = document.getElementById("fetchDataButton");
+fetchDataButton.addEventListener("click", function () {
+        const studentId = document.getElementById("userId").value;
+
+        // Gửi yêu cầu API để lấy điểm của sinh viên theo studentId
+        fetch(apiUrl + `/${studentId}`, {
+            method: 'GET',
+            headers: headers
+        })
+            .then(response => {
+                if (response.ok) {
+                    return response.json(); // Lấy dữ liệu điểm môn học
+                } else {
+                    throw new Error('Lỗi khi gửi yêu cầu GET');
+                }
+            })
+            .then(data => {
+                 const baiTapCounts = {};
+
+    // Duyệt qua mảng dữ liệu và tính toán số lượng bài tập theo môn học
+    data.forEach(item => {
+        const tenMonHoc = item.tenMonHoc;
+        const diem = item.diem;
+
+        // Nếu môn học đã tồn tại trong đối tượng baiTapCounts, thì tăng số lượng
+        if (baiTapCounts[tenMonHoc]) {
+            baiTapCounts[tenMonHoc].count++;
+            baiTapCounts[tenMonHoc].totalDiem += diem;
+        } else {
+            // Nếu môn học chưa tồn tại, thì tạo mới
+            baiTapCounts[tenMonHoc] = {
+                count: 1,
+                totalDiem: diem
+            };
+        }
+    });
+
+    // Tạo mảng dữ liệu cho biểu đồ
+    const dataPoints = [];
+
+    for (const monHoc in baiTapCounts) {
+        if (baiTapCounts.hasOwnProperty(monHoc)) {
+            const averageDiem = baiTapCounts[monHoc].totalDiem / baiTapCounts[monHoc].count;
+            dataPoints.push({ label: monHoc, y: averageDiem });
+        }
+    }
+
+
+    // Tạo và render biểu đồ cột
+    var chart = new CanvasJS.Chart("chartContainer4", {
+        title: {
+            text: "Điểm trung bình theo môn học"
+        },
+        data: [
+            {
+                type: "column",
+                dataPoints: dataPoints
+            }
+        ]
+    });
+
+    chart.render();
+            })
+            .catch(error => {
+                console.error('Lỗi:', error);
+                alert('Có lỗi xảy ra khi kết nối đến máy chủ.');
+            });
+    });
+
+     function getUserName() {
+    var userId = document.getElementById("userId").value;
+    var userNameInput = document.getElementById("userName");
+
+    console.log(`/api/v1/users/${userId}`)
+    fetch(`/api/v1/users/${userId}`, {
+        method: "GET",
+        headers: {
+            "Authorization": 'Bearer eyJhbGciOiJIUzI1NiJ9.eyJ1c2VySWQiOjMsInVzZXJuYW1lIjoidXNlcjMiLCJzdWIiOiJ1c2VyMyIsImV4cCI6MTY5OTQ5MDk0OH0.XmXda0N-Xrj_jxTChtZ_KO4FLya614m4R45p7HGlo9g'
+        }
+    })
+    .then(response => {
+        if (response.ok) {
+            return response.json();
+        } else {
+            throw new Error("Lỗi khi lấy tên người dùng.");
+        }
+    })
+    .then(data => {
+        var name = data.name;
+        console.log(name);
+        userNameInput.value = name;
+    })
+    .catch(error => {
+        console.error("Lỗi khi gửi yêu cầu: " + error);
+    });
+}
+
+</script>
+</body>
+</html>

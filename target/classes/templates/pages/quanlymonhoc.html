@@ -1,0 +1,68 @@
+<!DOCTYPE html>
+
+<html xmlns:th="http://www.thymeleaf.org">
+<head th:replace="../layouts/header :: html_head"/>
+<body>
+<div th:replace="../layouts/header :: html_nav"/>
+
+<section class="container">
+    <!--    <h1 th:text="${'Chào mừng '+ ' đã đến với trang quản trị'"></h1>-->
+    <h1>Quản lý môn học</h1>
+    <h1>Danh sách môn học</h1>
+    <table class="table">
+        <thead class="thead-dark">
+        <tr>
+            <th scope="col">Mã môn học</th>
+            <th scope="col">Tên môn học</th>
+            <th scope="col">Active</th>
+            <th scope="col">Số tín chỉ</th>
+            <th scope="col">Giảng viên</th>
+            <th scope="col">Công cụ</th>
+        </tr>
+        </thead>
+        <tbody th:each="course : ${courseList}">
+        <tr>
+            <td th:text="${course.maMonHoc}"></td>
+            <td th:text="${course.tenMonHoc}"></td>
+            <td th:text="${course.active}"></td>
+            <td th:text="${course.soTinChi}"></td>
+            <td th:text="${course.giangVien.tenGiangVien}"></td>
+<!--            <td><button class="btn btn-warning">Vô hiệu hóa môn học</button></td>-->
+            <td>
+                <button class="btn btn-warning" th:if="${course.active == false}" disabled>Vô hiệu hóa môn học</button>
+                <button class="btn btn-warning" th:if="${course.active == true}" th:attr="onclick='disableMonHoc(\'' + ${course.id} + '\')'">Vô hiệu hóa môn học</button>
+            </td>
+        </tr>
+        </tbody>
+    </table>
+</section>
+<footer th:replace="../layouts/footer :: html_footer"/>
+</body>
+<script>
+    function disableMonHoc(monHocid) {
+  if (confirm("Bạn có chắc chắn muốn xóa môn học này không?")){
+     fetch(`/admin/quanlymonhoc/disable-monhoc/${monHocid}`, {
+           method: 'PUT',
+           headers: {
+           'Authorization': `Bearer eyJhbGciOiJIUzI1NiJ9.eyJ1c2VySWQiOjMsInVzZXJuYW1lIjoidXNlcjMiLCJzdWIiOiJ1c2VyMyIsImV4cCI6MTY5OTQ5MDk0OH0.XmXda0N-Xrj_jxTChtZ_KO4FLya614m4R45p7HGlo9g`
+       }
+       })
+       .then(response => {
+           if (response.ok) {
+               location.reload();
+               alert('Môn học đã được vô hiệu hóa.');
+               // Cập nhật giao diện người dùng hoặc tải lại trang (tùy theo cần thiết)
+           } else {
+               alert('Có lỗi xảy ra khi vô hiệu hóa người dùng.');
+           }
+       })
+       .catch(error => {
+           console.error('Lỗi:', error);
+           alert('Có lỗi xảy ra khi kết nối đến máy chủ.');
+       });
+  }
+
+
+   }
+</script>
+</html>
