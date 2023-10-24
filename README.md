@@ -8,5 +8,5 @@
 1. Sau khi xong phần data, mọi người mở dự án lên (khuyến khích dùng InteliJ IDEA).
 2. Sau khi mở xong, mọi người build lại dự án để lấy các mô-đun từ các thư viện về.
 3. Cuối cùng mọi người chỉ ấn chạy dự án (Shift + F10).
-4. ##Lưu ý : Hệ thống sẽ chạy với port 8081, nếu mọi người muốn đổi port khác hoặc port bị trùng thì vào file application.properties chỉnh dòng server.port thành port mọi người chạy được.##
+**Lưu ý : Hệ thống sẽ chạy với port 8081, nếu mọi người muốn đổi port khác hoặc port bị trùng thì vào file application.properties chỉnh dòng server.port thành port mọi người chạy được.**
    
